@@ -1,6 +1,6 @@
 stages:
   data_ingestion:
-    cmd: python src/pipeline/stage_01_data_ingestion.py
+    cmd: python -m src.pipeline.stage_01_data_ingestion
     deps:
       - src/components/data_ingestion.py
       - src/pipeline/stage_01_data_ingestion.py
@@ -10,16 +10,16 @@ stages:
       - data/processed
 
   train:
-    cmd: python src/pipeline/stage_02_train.py
+    cmd: python -m src.pipeline.stage_02_train
     deps:
       - data/processed
-      - src/components/image_preprocessing.py
+      - src/components/data_preprocessing.py
       - src/components/model_trainer.py
       - src/components/model.py
       - src/pipeline/stage_02_train.py
       - config/config.yaml
     params:
-      - config.yaml:
+      - config/config.yaml:
           - model_training
           - image_preprocessing
     outs:
@@ -29,7 +29,7 @@ stages:
           cache: false
 
   evaluate:
-    cmd: python src/pipeline/stage_03_evaluate.py
+    cmd: python -m src.pipeline.stage_03_evaluate
     deps:
       - models/resnet18_best.pth
       - src/components/model_evaluation.py
@@ -42,7 +42,7 @@ stages:
           cache: false
 
   registry:
-    cmd: python src/pipeline/stage_04_registry.py
+    cmd: python -m src.pipeline.stage_04_registry
     deps:
       - models/resnet18_best.pth
       - metrics/test_metrics.json
