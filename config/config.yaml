@@ -56,3 +56,9 @@ model_registry:
   registry_dir: "models/registry"
   registry_index_filename: "registry_index.json"
   primary_metric: "roc_auc"   # metric used to decide auto-promotion to production
+
+app:
+  host: "0.0.0.0"
+  port: 8000
+  cors_origins:
+    - "*"   # tighten this to your actual frontend origin before deploying
