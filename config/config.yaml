@@ -46,3 +46,13 @@ model_training:
   lr_scheduler_patience: 2
   lr_scheduler_factor: 0.5
   random_seed: 42
+
+model_evaluation:
+  metrics_dir: "metrics"
+  confusion_matrix_filename: "confusion_matrix.png"
+  metrics_filename: "test_metrics.json"
+
+model_registry:
+  registry_dir: "models/registry"
+  registry_index_filename: "registry_index.json"
+  primary_metric: "roc_auc"   # metric used to decide auto-promotion to production

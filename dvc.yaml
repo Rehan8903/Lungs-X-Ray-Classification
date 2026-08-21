@@ -1,0 +1,52 @@
+stages:
+  data_ingestion:
+    cmd: python src/pipeline/stage_01_data_ingestion.py
+    deps:
+      - src/components/data_ingestion.py
+      - src/pipeline/stage_01_data_ingestion.py
+      - config/config.yaml
+    outs:
+      - data/raw
+      - data/processed
+
+  train:
+    cmd: python src/pipeline/stage_02_train.py
+    deps:
+      - data/processed
+      - src/components/image_preprocessing.py
+      - src/components/model_trainer.py
+      - src/components/model.py
+      - src/pipeline/stage_02_train.py
+      - config/config.yaml
+    params:
+      - config.yaml:
+          - model_training
+          - image_preprocessing
+    outs:
+      - models/resnet18_best.pth   # rename if you change model_training.model_type in config
+    metrics:
+      - metrics/train_history.json:
+          cache: false
+
+  evaluate:
+    cmd: python src/pipeline/stage_03_evaluate.py
+    deps:
+      - models/resnet18_best.pth
+      - src/components/model_evaluation.py
+      - src/pipeline/stage_03_evaluate.py
+      - data/processed
+    outs:
+      - metrics/confusion_matrix.png
+    metrics:
+      - metrics/test_metrics.json:
+          cache: false
+
+  registry:
+    cmd: python src/pipeline/stage_04_registry.py
+    deps:
+      - models/resnet18_best.pth
+      - metrics/test_metrics.json
+      - src/components/model_registry.py
+      - src/pipeline/stage_04_registry.py
+    outs:
+      - models/registry
