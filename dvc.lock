@@ -1,0 +1,156 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python -m src.pipeline.stage_01_data_ingestion
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: d96580526df5724f7ad1ca25f61a8b99
+      size: 1724
+    - path: src/components/data_ingestion.py
+      hash: md5
+      md5: c7ae00c90a90c69bb9d3338965eec427
+      size: 9009
+    - path: src/pipeline/stage_01_data_ingestion.py
+      hash: md5
+      md5: 1e9042f4e5fdb3f9d87e2b1c65b88389
+      size: 232
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: e467f900497e5907ba71adead316ecaf.dir
+      size: 1154397616
+      nfiles: 5216
+    - path: data/raw
+      hash: md5
+      md5: 06b1b588faf9b0a057dd4ab2287824ce.dir
+      size: 2483915296
+      nfiles: 17591
+  train:
+    cmd: python -m src.pipeline.stage_02_train
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: d96580526df5724f7ad1ca25f61a8b99
+      size: 1724
+    - path: data/processed
+      hash: md5
+      md5: e467f900497e5907ba71adead316ecaf.dir
+      size: 1154397616
+      nfiles: 5216
+    - path: src/components/data_preprocessing.py
+      hash: md5
+      md5: ab9b168a3467e07ed1eab64b09d2b69b
+      size: 8794
+    - path: src/components/model.py
+      hash: md5
+      md5: 796baed182e33290a685b55db7497bab
+      size: 2602
+    - path: src/components/model_trainer.py
+      hash: md5
+      md5: ac61304266859f5be7b935f1427b45f1
+      size: 10830
+    - path: src/pipeline/stage_02_train.py
+      hash: md5
+      md5: 34aa563ad3c2682eeb347a1891e95784
+      size: 1153
+    params:
+      config/config.yaml:
+        image_preprocessing:
+          img_size: 224
+          batch_size: 32
+          num_workers: 2
+          normalize_mean:
+          - 0.485
+          - 0.456
+          - 0.406
+          normalize_std:
+          - 0.229
+          - 0.224
+          - 0.225
+          use_weighted_sampler: true
+          augmentation:
+            random_rotation_degrees: 10
+            horizontal_flip_prob: 0.5
+            color_jitter_brightness: 0.1
+            color_jitter_contrast: 0.1
+        model_training:
+          model_type: resnet18
+          num_classes: 2
+          checkpoint_dir: models
+          resnet:
+            freeze_backbone_epochs: 8
+            freeze_backbone_lr: 0.001
+            finetune_epochs: 5
+            finetune_lr: 1e-05
+          baseline_cnn:
+            num_epochs: 10
+            learning_rate: 0.001
+          weight_decay: 0.0001
+          early_stopping_patience: 3
+          lr_scheduler_patience: 2
+          lr_scheduler_factor: 0.5
+          random_seed: 42
+    outs:
+    - path: metrics/train_history.json
+      hash: md5
+      md5: 945a110e9288278a48ffdd0758e2901f
+      size: 1702
+    - path: models/resnet18_best.pth
+      hash: md5
+      md5: c7dcafb7e9636c4b8c91eb5ce31bda2f
+      size: 44788555
+  evaluate:
+    cmd: python -m src.pipeline.stage_03_evaluate
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: e467f900497e5907ba71adead316ecaf.dir
+      size: 1154397616
+      nfiles: 5216
+    - path: models/resnet18_best.pth
+      hash: md5
+      md5: c7dcafb7e9636c4b8c91eb5ce31bda2f
+      size: 44788555
+    - path: src/components/model_evaluation.py
+      hash: md5
+      md5: 06786dacac692976d492afa6c8ca8faa
+      size: 10534
+    - path: src/pipeline/stage_03_evaluate.py
+      hash: md5
+      md5: dfb93a3435fe8e3237d0b9e3a17bc842
+      size: 992
+    outs:
+    - path: metrics/confusion_matrix.png
+      hash: md5
+      md5: 4d87d57492486cdddb9c4a6d95f4d8bf
+      size: 20189
+    - path: metrics/test_metrics.json
+      hash: md5
+      md5: d959a965774e8f208767e91dd38734f7
+      size: 766
+  registry:
+    cmd: python -m src.pipeline.stage_04_registry
+    deps:
+    - path: metrics/test_metrics.json
+      hash: md5
+      md5: d959a965774e8f208767e91dd38734f7
+      size: 766
+    - path: models/resnet18_best.pth
+      hash: md5
+      md5: c7dcafb7e9636c4b8c91eb5ce31bda2f
+      size: 44788555
+    - path: src/components/model_registry.py
+      hash: md5
+      md5: e23174c66c021bc7b520caadcd51fec8
+      size: 11866
+    - path: src/pipeline/stage_04_registry.py
+      hash: md5
+      md5: f4dd4a4191b634259c32ce7baf9e07d5
+      size: 568
+    outs:
+    - path: models/registry
+      hash: md5
+      md5: 2f1489210e84ad8b31b5a6aca674ffe8.dir
+      size: 44789747
+      nfiles: 3
